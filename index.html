@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>全国百貨店 売上高(過去36か月)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#1d2433;--sub:#667085;--line:#23407a;--grid:#e4e7ec}
+@media(prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1b2029;--ink:#eef1f6;--sub:#98a2b3;--line:#7ea2f0;--grid:#2c3340}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic",sans-serif}
+main{max-width:860px;margin:0 auto;padding:20px 14px}
+h1{font-size:18px;margin:0 0 4px}
+#latest{font-size:26px;font-weight:700;margin:10px 0 2px}
+#note{color:var(--sub);font-size:13px;margin-bottom:12px}
+.card{background:var(--card);border-radius:10px;padding:12px;height:360px}
+</style></head><body><main>
+<h1>全国百貨店 売上高(過去36か月)</h1>
+<div id="latest">読み込み中…</div><div id="note"></div>
+<div class="card"><canvas id="c"></canvas></div>
+<p id="src" style="color:var(--sub);font-size:12px">出典: 日本百貨店協会 売上高速報(毎月25日ごろ発表)</p>
+</main><script>
+(async()=>{
+ const t=await (await fetch("data/sales.csv?"+Date.now())).text();
+ const d=t.trim().split("\n").slice(1).map(l=>l.split(",")).map(([m,v])=>({m,v:+v})).sort((a,b)=>a.m<b.m?-1:1);
+ const all=d, rows=d.slice(-36); if(!rows.length){latest.textContent="データがまだありません";return}
+ const L=rows.at(-1), yy=all.find(x=>x.m===(+L.m.slice(0,4)-1)+"-"+L.m.slice(5));
+ latest.textContent=L.v.toLocaleString()+" 千円";
+ note.textContent=L.m.replace("-","年")+"月"+(yy?` ／ 前年同月比 ${((L.v/yy.v-1)*100).toFixed(1)}%(店舗数調整前)`:"");
+ const css=getComputedStyle(document.documentElement);
+ new Chart(c,{type:"line",data:{labels:rows.map(r=>r.m),datasets:[{data:rows.map(r=>r.v/1e5),
+  borderColor:css.getPropertyValue("--line"),backgroundColor:css.getPropertyValue("--line"),
+  borderWidth:2,tension:.25,pointRadius:rows.map((_,i)=>i===rows.length-1?5:2)}]},
+  options:{maintainAspectRatio:false,plugins:{legend:{display:false},
+   tooltip:{callbacks:{label:x=>rows[x.dataIndex].v.toLocaleString()+" 千円"}}},
+   scales:{y:{title:{display:true,text:"億円"},grid:{color:css.getPropertyValue("--grid")}},
+   x:{grid:{display:false},ticks:{maxTicksLimit:7}}}}});
+})();
+</script></body></html>
