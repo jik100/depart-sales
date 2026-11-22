@@ -9,7 +9,7 @@ BASE = "https://www.depart.or.jp/store_sale/"
 UA = {"User-Agent": "Mozilla/5.0"}
 
 def get(url):
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
+    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=15) as r:
         return r.read()
 
 def months(n=36):
